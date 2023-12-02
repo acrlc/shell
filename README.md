@@ -4,7 +4,7 @@
 `process`, `output`, and `outputData`
 ```swift
 // run process, throwing an error if theres an error code
-try process(.git, "clone", "https://")
+try process(.git, with: "clone", "https://")
 
 // read the output of a command
 let string = try output(.cat, with: "file.input")

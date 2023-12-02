@@ -336,7 +336,7 @@ public func outputData(
 @discardableResult
 public func output(
  _ command: CommandName,
- _ arguments: String...,
+ with arguments: String...,
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
  errorHandle: FileHandle? = .nullDevice,
@@ -354,7 +354,7 @@ public func output(
 @discardableResult
 public func output(
  _ command: CommandName,
- with arguments: some Sequence<String>,
+ _ arguments: some Sequence<String>,
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
  errorHandle: FileHandle? = .nullDevice,
@@ -372,7 +372,7 @@ public func output(
 @discardableResult
 public func outputData(
  _ command: CommandName,
- _ arguments: String...,
+ with arguments: String...,
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
  errorHandle: FileHandle? = .nullDevice,
@@ -390,7 +390,7 @@ public func outputData(
 @discardableResult
 public func outputData(
  _ command: CommandName,
- with arguments: some Sequence<String>,
+ _ arguments: some Sequence<String>,
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
  errorHandle: FileHandle? = .nullDevice,
@@ -534,6 +534,8 @@ public func open(_ url: URL) {
  #endif
 }
 
-extension Data {
- init(curl path: String) throws { self = try outputData(.curl, "-s", path) }
+public extension Data {
+ init(curl path: String) throws {
+  self = try outputData(.curl, with: "-s", path)
+ }
 }
