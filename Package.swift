@@ -24,7 +24,7 @@ let package = Package(
 
 #if !arch(wasm32)
 package.dependencies.append(
- .package(url: "https://github.com/codeAcrylic/paths.git", branch: "main")
+ .package(url: "https://github.com/codeAcrylic/paths.git", from: "0.1.0")
 )
 for target in package.targets {
  if target.name == "Shell" {
