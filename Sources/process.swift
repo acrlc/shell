@@ -421,11 +421,12 @@ public extension Process {
  _ args: some Sequence<String>
 ) throws {
  let process = Process(command, args: args)
+
  try process.run()
  process.waitUntilExit()
 
- let code = process.terminationStatus
- if code != 0 { throw POSIXError.code(code) }
+ let status = process.terminationStatus
+ if status != 0 { throw _POSIXError.termination(status) }
 }
 
 @inline(__always)
@@ -462,20 +463,22 @@ private extension String {
 }
 
 #if os(WASI) || os(Windows)
-@_transparent
-public func exit(_ error: some Error) -> Never {
+@inlinable public func exit(_ error: some Error) -> Never {
  if let error = error as? ShellError {
   exit(error.terminationStatus, error.localizedDescription)
- } else {
-  exit(Int32(error._code), error.message)
+ } else if let error = error as? _POSIXError {
+  Foundation.exit(error.status)
  }
+ exit(Int32(error._code), error.message)
 }
 #else
-@_transparent
-public func exit(_ error: some Error) -> Never {
+@inlinable public func exit(_ error: some Error) -> Never {
  if let error = error as? ShellError {
-  exit(error.terminationStatus, error.localizedDescription)
+  exit(error.terminationStatus, error.message)
+ } else if let error = error as? _POSIXError {
+  Foundation.exit(error.status)
  }
+
  #if os(macOS) || os(iOS)
  if #available(macOS 11.3, iOS 14.5, *) {
   let error = error as NSError
@@ -488,31 +491,26 @@ public func exit(_ error: some Error) -> Never {
 }
 #endif
 
-@_transparent
 /// Exits the process with either `help` variable, error, or optional reason
-public func exit(_ status: Int32 = 0, _ reason: Any? = nil) -> Never {
- if status == 0, let help = CommandLine.usage { echo(help, style: .bold) }
- else if let reason {
-  if let reason = String(describing: reason).wrapped {
-   if status == .zero {
-    echo(reason, color: .green)
-   } else if status > 0 {
-    let error = status == 1
-    if let spaceIndex =
-     reason.firstIndex(where: { $0 == .space }),
-     reason[reason.startIndex ..< spaceIndex].lowercased().hasPrefix("error") {
-     echo(reason[spaceIndex ..< reason.endIndex], color: error ? .red : .yellow)
-    } else {
-     echo(reason, color: error ? .red : .yellow)
-    }
-
-    if let help = CommandLine.usage { print(help) }
+@inlinable public func exit(_ status: Int32 = 0, _ reason: Any) -> Never {
+ if let reason = String(describing: reason).wrapped {
+  if status == 0 {
+   echo(reason, color: .green)
+  } else if status > 0 {
+   let error = status == 1
+   if let spaceIndex =
+    reason.firstIndex(where: { $0 == .space }),
+    reason[reason.startIndex ..< spaceIndex].lowercased().hasPrefix("error") {
+    echo(reason[spaceIndex ..< reason.endIndex], color: error ? .red : .yellow)
    } else {
-    print(reason)
+    echo(reason, color: error ? .red : .yellow)
    }
+
+  } else {
+   print(reason)
   }
  }
- return exit(status)
+ return Foundation.exit(status)
 }
 
 #if os(macOS)

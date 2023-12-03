@@ -5,7 +5,7 @@ public func exec(_ command: String, with arguments: [String]) throws -> Never {
  let args = CStringArray([command] + arguments)
 
  guard execv(command, args.cArray) != -1 else {
-  throw POSIXError.execv(executable: command, errno: errno)
+  throw _POSIXError.execv(executable: command, errno: errno)
  }
 
  // note: impossible?
@@ -42,21 +42,23 @@ public func strerror(_ code: Int32) -> String {
  return "fatal: strerror_r: ERANGE"
 }
 
-public enum POSIXError: LocalizedError {
- case execv(executable: String, errno: Int32), code(Int32)
+public enum _POSIXError: LocalizedError {
+ case execv(executable: String, errno: Int32), termination(Int32)
 
- public var _code: Int {
+ public var status: Int32 {
   switch self {
-  case .execv(_, let code): return Int(code)
-  case .code(let code): return Int(code)
+  case .execv(_, let code): return code
+  case .termination(let code): return code
   }
  }
+
+ public var _code: Int { Int(self.status) }
 
  public var errorDescription: String? {
   switch self {
   case .execv(let executablePath, let errno):
    return "execv failed: \(strerror(errno)): \(executablePath)"
-  case .code(let code): return code.description
+  case .termination(let code): return "exit: \(code)"
   }
  }
 }
