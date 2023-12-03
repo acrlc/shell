@@ -13,7 +13,7 @@ public enum Shell {
 
  #if !os(WASI)
  // TODO: notify on changes to width and cache
- static func callWidth() -> Int {
+ public static func callWidth() -> Int {
   var size = winsize()
   #if os(Windows) || os(Linux)
   if ioctl(STDOUT_FILENO, UInt(TIOCGWINSZ), &size) == 0 {
@@ -30,26 +30,28 @@ public enum Shell {
   #endif
  }
 
- public static var width: Int { callWidth() }
+ @inlinable public static var width: Int { callWidth() }
  #endif
- 
-// public static func clearLine(_ width: Int) {
-//  print("\u{001B}[1A", terminator: .empty)
-//  fflush(stdout)
-//  print(String(repeating: .space, count: width), terminator: "\r")
-// }
- 
- public static func appendInput(_ input: String) {
+
+ @inlinable public static func clearScrollback(_ count: Int = 1) {
+  for _ in 0 ..< count {
+   print("\u{001B}[1A", terminator: .empty)
+   fflush(stdout)
+   print(String(repeating: .space, count: width), terminator: "\r")
+  }
+ }
+
+ @inlinable public static func appendInput(_ input: String) {
   fflush(stdout)
   print("\r" + input, terminator: .empty)
  }
- 
- public static func clearLine() {
+
+ @inlinable public static func clearLine() {
   fflush(stdout)
   print("\r", terminator: .empty)
  }
- 
- public static func clearInput(_ width: Int = Shell.width) {
+
+ @inlinable public static func clearInput(_ width: Int = Shell.width) {
   fflush(stdout)
   print(
    "\r" + String(repeating: .space, count: width),
