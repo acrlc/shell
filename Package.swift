@@ -6,7 +6,7 @@ let package = Package(
  platforms: [.macOS(.v10_15), .iOS(.v13)],
  products: [.library(name: "Shell", targets: ["Shell"])],
  dependencies: [
-  .package(url: "https://github.com/codeAcrylic/core.git", from: "0.1.0"),
+  .package(url: "https://github.com/acrlc/core.git", from: "0.1.0"),
   .package(url: "https://github.com/mxcl/Chalk.git", from: "0.5.0")
  ],
  targets: [
@@ -24,7 +24,7 @@ let package = Package(
 
 #if !arch(wasm32)
 package.dependencies.append(
- .package(url: "https://github.com/codeAcrylic/paths.git", from: "0.1.0")
+ .package(url: "https://github.com/acrlc/paths.git", from: "0.1.0")
 )
 for target in package.targets {
  if target.name == "Shell" {
