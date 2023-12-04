@@ -34,13 +34,14 @@ import Shell // ..
  */
 @main enum Git {
  static let folder = Folder.current
+ // note: when dropping the first the index must be remapped with an array
+ // to support normal subscripting
+ static var arguments = CommandLine.arguments[1...].map { $0 }
+ static let subcommand = arguments.first
 
  static func main() {
-  var arguments = CommandLine.arguments[1...].map { $0 }
-  let command = arguments.first
-
   do {
-   if command == "clone" {
+   if subcommand == "clone" {
     // TODO: make safe for complex arguments within this scope
     // and read parent folders names such as 'github' or 'huggingface' to
     // so they can be used for the shorthand domain
@@ -57,7 +58,7 @@ import Shell // ..
       arguments[1] = "https://github.com/\(user)/\(path)"
      }
     }
-   } else if command == "initialize" {
+   } else if subcommand == "initialize" {
     guard !folder.containsSubfolder(named: ".git") else {
      print("current folder appears to be a repository")
      print(
@@ -83,7 +84,7 @@ import Shell // ..
       exit(2, "unknown flag at \(first)")
      }
     } else {
-     print("\nEnter initial commit message(default, initial): ", terminator: .empty)
+     print("Enter initial commit message(default, initial): ", terminator: .empty)
      message = readLine()?.wrapped
     }
 
@@ -101,7 +102,7 @@ import Shell // ..
     try process(.git, with: "push", "-u", "origin", branch)
 
     exit(0)
-   } else if command == "source" {
+   } else if subcommand == "source" {
     guard folder.containsSubfolder(named: ".git") else {
      print("current folder isn't a repository")
      print("use 'git init && git source' or 'git initialize' to add remote")
@@ -141,7 +142,7 @@ extension Git {
   var remote: String! = optional
   var retry = false
   while remote == nil {
-   print("\rEnter remote user/repo or address: ", terminator: .empty)
+   print("Enter remote user/repo or address: ", terminator: .empty)
 
    if let input = readLine()?.wrapped { remote = input }
    else {
@@ -154,12 +155,12 @@ extension Git {
  }
 
  static func getBranch() -> String? {
-  print("\rEnter optional branch (default, main): ", terminator: .empty)
+  print("Enter optional branch (default, main): ", terminator: .empty)
   return readLine()?.wrapped
  }
 
  static func request() {
-  print("\rPush this commit to remote? [Y/n]: ", terminator: .empty)
+  print("Push this commit to remote? [Y/n]: ", terminator: .empty)
   if let input = readLine()?.lowercased() {
    switch input {
    case "y", "yes": break

@@ -9,7 +9,7 @@ import Shell // ..
  /// Optional flag to permanently delete files
  static var force: Bool = false
  /// Files to trash or delete
- static var inputs: [String] = CommandLine.arguments[1...].map { $0 }
+ static var inputs = CommandLine.arguments[1...]
 
  static func main() {
   // macOS only
