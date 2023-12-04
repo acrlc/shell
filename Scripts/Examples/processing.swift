@@ -1,9 +1,9 @@
 #!/usr/bin/env swift-shell
-import Shell // @git/codeAcrylic/shell
+import Shell // ../..
 
 /// Note: must be in file directory to reference the input file
 let string = try output(.cat, with: "file.txt.input")
-print("\nOutput:", string)
+print("out:", string)
 
 let data = try outputData(.cat, with: "file.txt.input")
-print("Decoded:", String(data: data, encoding: .utf8) ?? "corrupt")
+print("decoded:", String(data: data, encoding: .utf8) ?? "corrupt")
