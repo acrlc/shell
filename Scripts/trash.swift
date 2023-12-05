@@ -12,71 +12,65 @@ import Shell // ..
  static var inputs = CommandLine.arguments[1...]
 
  static func main() {
-  // macOS only
-  if #available(macOS 11, *) {
-   parse()
-   guard self.inputs.notEmpty else {
-    print("input <\("path", style: .boldDim)> required")
-    exit(1)
-   }
+  parse()
+  guard self.inputs.notEmpty else {
+   print("input <\("path", style: .boldDim)> required")
+   exit(1)
+  }
 
-   do {
-    if self.force {
-     try process(.rm, with: ["-frd"] + self.inputs)
-    } else {
-     let urls = try inputs.compactMap {
-      let url = URL(fileURLWithPath: $0)
-      do {
-       if try url.checkResourceIsReachable() { return url }
-      } catch {
-       throw Error.fileIsMissing(url)
-      }
-      return nil
-     }
-
-     /// adapted from https://github.com/aerobounce/trash.swift
-     let target = NSAppleEventDescriptor(bundleIdentifier: "com.apple.finder")
-     let event = NSAppleEventDescriptor(
-      eventClass: kAECoreSuite,
-      eventID: AEEventID(kAEDelete),
-      targetDescriptor: target,
-      returnID: AEReturnID(kAutoGenerateReturnID),
-      transactionID: AETransactionID(kAnyTransactionID)
-     )
-
-     let listDescriptor = NSAppleEventDescriptor(listDescriptor: ())
-     for (offset, url) in urls.enumerated() {
-      /// UTF-8 encoded full path with native path separators
-      let nativePath = try NSAppleEventDescriptor(
-       descriptorType: typeFileURL,
-       data: url.absoluteString.data(using: .utf8)
-      ).throwing()
-
-      // note: must add an additional offset to the list
-      listDescriptor.insert(nativePath, at: offset + 1)
-     }
-
-     event.setParam(listDescriptor, forKeyword: keyDirectObject)
-
+  do {
+   if self.force {
+    try process(.rm, with: ["-frd"] + self.inputs)
+   } else {
+    let urls = try inputs.compactMap {
+     let url = URL(fileURLWithPath: $0)
      do {
-      try event.sendEvent(
-       options: .noReply,
-       timeout: TimeInterval(kAEDefaultTimeout)
-      )
-     } catch let error as NSError {
-      if case -600 = error.code {
-       throw Error.finderNotRunning
-      } else {
-       throw error
-      }
+      if try url.checkResourceIsReachable() { return url }
+     } catch {
+      throw Error.fileIsMissing(url)
+     }
+     return nil
+    }
+
+    /// adapted from https://github.com/aerobounce/trash.swift
+    let target = NSAppleEventDescriptor(bundleIdentifier: "com.apple.finder")
+    let event = NSAppleEventDescriptor(
+     eventClass: kAECoreSuite,
+     eventID: AEEventID(kAEDelete),
+     targetDescriptor: target,
+     returnID: AEReturnID(kAutoGenerateReturnID),
+     transactionID: AETransactionID(kAnyTransactionID)
+    )
+
+    let listDescriptor = NSAppleEventDescriptor(listDescriptor: ())
+    for (offset, url) in urls.enumerated() {
+     /// UTF-8 encoded full path with native path separators
+     let nativePath = try NSAppleEventDescriptor(
+      descriptorType: typeFileURL,
+      data: url.absoluteString.data(using: .utf8)
+     ).throwing()
+
+     // note: must add an additional offset to the list
+     listDescriptor.insert(nativePath, at: offset + 1)
+    }
+
+    event.setParam(listDescriptor, forKeyword: keyDirectObject)
+
+    do {
+     try event.sendEvent(
+      options: .noReply,
+      timeout: TimeInterval(kAEDefaultTimeout)
+     )
+    } catch let error as NSError {
+     if case -600 = error.code {
+      throw Error.finderNotRunning
+     } else {
+      throw error
      }
     }
-   } catch {
-    exit(error)
    }
-  } else {
-   let platform = try! output("uname")
-   exit(2, "platform \(platform) not supported")
+  } catch {
+   exit(error)
   }
  }
 }
