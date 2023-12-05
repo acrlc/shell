@@ -39,7 +39,7 @@ import Shell // ..
 
    try process(
     command: command,
-    arguments.contains("{}") ?
+    arguments.contains(where: { $0.contains("{}") }) ?
      arguments.map { $0.replacingOccurrences(of: "{}", with: folder.name) } :
      arguments
    )
