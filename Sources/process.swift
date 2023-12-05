@@ -442,6 +442,12 @@ public func process(
 ) throws {
  try process(command: command.rawValue, args)
 }
+
+public extension Data {
+ init(curl path: String) throws {
+  self = try outputData(.curl, with: "-s", path)
+ }
+}
 #endif
 
 private extension String {
@@ -466,19 +472,22 @@ private extension String {
 @inlinable public func exit(_ error: some Error) -> Never {
  if let error = error as? ShellError {
   exit(error.terminationStatus, error.localizedDescription)
- } else if let error = error as? _POSIXError {
-  Foundation.exit(error.status)
  }
+ #if !os(WASI)
+ if let error = error as? _POSIXError { Foundation.exit(error.status) }
+ #endif
  exit(Int32(error._code), error.message)
 }
 #else
 @inlinable public func exit(_ error: some Error) -> Never {
  if let error = error as? ShellError {
   exit(error.terminationStatus, error.message)
- } else if let error = error as? _POSIXError {
+ }
+ #if !os(WASI)
+ if let error = error as? _POSIXError {
   Foundation.exit(error.status)
  }
-
+ #endif
  #if os(macOS) || os(iOS)
  if #available(macOS 11.3, iOS 14.5, *) {
   let error = error as NSError
@@ -530,10 +539,4 @@ public func open(_ url: URL) {
  #else
  fatalError("Operating system not supported")
  #endif
-}
-
-public extension Data {
- init(curl path: String) throws {
-  self = try outputData(.curl, with: "-s", path)
- }
 }

@@ -1,5 +1,22 @@
-#if os(WASI) || os(Windows) || os(Linux)
-import enum Crypto.Insecure
+#if os(macOS) || os(iOS)
+@available(macOS 12, iOS 15, *)
+public extension Data {
+ @inlinable init(
+  url: URL, session: URLSession = .shared,
+  delegate: URLSessionTaskDelegate? = nil
+ ) async throws {
+  self = try await session.data(from: url, delegate: delegate).0
+ }
+
+ @inlinable init(
+  for request: URLRequest, session: URLSession = .shared,
+  delegate: URLSessionTaskDelegate? = nil
+ ) async throws {
+  self = try await session.data(for: request, delegate: delegate).0
+ }
+}
+
+#elseif canImport(FoundationNetworking)
 import FoundationNetworking
 // https://medium.com/hoursofoperation/use-async-urlsession-with-server-side-swift-67821a64fa91
 public enum URLSessionAsyncErrors: Error {
@@ -57,24 +74,6 @@ public extension Data {
 
  init(for request: URLRequest, session: URLSession = .shared) async throws {
   self = try await session.data(for: request).0
- }
-}
-
-#elseif os(iOS) || os(macOS)
-@available(macOS 12, iOS 15, *)
-public extension Data {
- @inlinable init(
-  url: URL, session: URLSession = .shared,
-  delegate: URLSessionTaskDelegate? = nil
- ) async throws {
-  self = try await session.data(from: url, delegate: delegate).0
- }
-
- @inlinable init(
-  for request: URLRequest, session: URLSession = .shared,
-  delegate: URLSessionTaskDelegate? = nil
- ) async throws {
-  self = try await session.data(for: request, delegate: delegate).0
  }
 }
 #endif

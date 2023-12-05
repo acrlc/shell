@@ -1,18 +1,14 @@
-import Foundation
 #if canImport(Darwin)
 import Darwin
-
 private let globFunction = Darwin.glob
 #elseif canImport(Glibc)
 import Glibc
-
 private let globFunction = Glibc.glob
-#else
-#error("Unsupported platform")
 #endif
 
+#if os(macOS) || os(Linux) || os(Windows)
+import Foundation
 // Adapted from https://gist.github.com/efirestone/ce01ae109e08772647eb061b3bb387c3
-
 public struct Glob {
  static func resolveGlob(_ pattern: String) -> [String] {
   let globCharset = CharacterSet(charactersIn: "*?[]")
@@ -153,3 +149,4 @@ public extension NSString {
   #endif
  }
 }
+#endif

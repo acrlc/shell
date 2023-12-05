@@ -33,14 +33,6 @@ public enum Shell {
  @inlinable public static var width: Int { callWidth() }
  #endif
 
- @inlinable public static func clearScrollback(_ count: Int = 1) {
-  for _ in 0 ..< count {
-   print("\u{001B}[1A", terminator: .empty)
-   fflush(stdout)
-   print(String(repeating: .space, count: width), terminator: "\r")
-  }
- }
-
  @inlinable public static func appendInput(_ input: String) {
   fflush(stdout)
   print("\r" + input, terminator: .empty)
@@ -51,6 +43,23 @@ public enum Shell {
   print("\r", terminator: .empty)
  }
 
+ #if os(WASI)
+ @inlinable public static func clearInput(_ width: Int) {
+  fflush(stdout)
+  print(
+   "\r" + String(repeating: .space, count: width),
+   terminator: .empty
+  )
+ }
+ #else
+ @inlinable public static func clearScrollback(_ count: Int = 1) {
+  for _ in 0 ..< count {
+   print("\u{001B}[1A", terminator: .empty)
+   fflush(stdout)
+   print(String(repeating: .space, count: width), terminator: "\r")
+  }
+ }
+
  @inlinable public static func clearInput(_ width: Int = Shell.width) {
   fflush(stdout)
   print(
@@ -58,6 +67,7 @@ public enum Shell {
    terminator: .empty
   )
  }
+ #endif
 }
 
 /* TODO: implement verbosity
