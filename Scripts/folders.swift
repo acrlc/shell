@@ -6,11 +6,11 @@ import Shell // ..
  #### Features
   - Performs commands on folders within the current directory
   ```sh
-  folders ls # list the files in the folder
+  folders ls . # list the files in the folder
   ```
   - `{}` is a special string that's replaced with the folder name
   ```sh
-  folders echo {} # print the name of the folder
+  folders echo hello\ {}! # print the name of the folder
   ```
   - The `t` or `tag` option will limit the scope to folders with the set tag
   ```sh
