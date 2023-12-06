@@ -68,6 +68,7 @@ import Shell // ..
     }
 
     assertIgnored()
+    checkLicensed()
     arguments.removeFirst()
 
     var message: String?
@@ -110,6 +111,7 @@ import Shell // ..
     }
 
     assertIgnored()
+    checkLicensed()
     arguments.removeFirst()
 
     let remote = getRemote(arguments.first)
@@ -133,8 +135,30 @@ import Shell // ..
 
 extension Git {
  static func assertIgnored() {
-  guard folder.containsFile(named: ".gitignore") else {
-   exit(2, "add a .gitignore file to this current folder to start")
+  guard
+   let ignoreFile = try? folder.file(named: ".gitignore"),
+   let data = try? ignoreFile.read(), !data.isEmpty else {
+   exit(2, "add a non empty .gitignore to this current folder to start")
+  }
+ }
+
+ static func readContinue() {
+  if let input = readLine()?.lowercased() {
+   switch input {
+   case "y", "yes": break
+   case "n", "no": fallthrough
+   default: exit(0)
+   }
+  }
+ }
+
+ static func checkLicensed() {
+  guard let licenseFile =
+   folder.files.first(where: {
+    $0.nameExcludingExtension.lowercased() == "license"
+   }), let data = try? licenseFile.read(), !data.isEmpty else {
+   print("Continue without a license? [y/n]: ", terminator: .empty)
+   return readContinue()
   }
  }
 
@@ -160,13 +184,7 @@ extension Git {
  }
 
  static func request() {
-  print("Push this commit to remote? [Y/n]: ", terminator: .empty)
-  if let input = readLine()?.lowercased() {
-   switch input {
-   case "y", "yes": break
-   case "n", "no": fallthrough
-   default: exit(0)
-   }
-  }
+  print("Push this commit to remote? [y/n]: ", terminator: .empty)
+  readContinue()
  }
 }
