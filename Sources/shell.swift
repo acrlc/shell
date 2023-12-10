@@ -1,7 +1,4 @@
-public extension CommandLine {
- static var usage: String?
-}
-
+// A
 public enum Shell {
  /// - Note: This should be replaced if the expected parser has the help command
  public var help: String? {
@@ -68,6 +65,48 @@ public enum Shell {
   )
  }
  #endif
+}
+
+// MARK: - Error
+// https://github.com/JohnSundell/ShellOut/blob/master/Sources/ShellOut.swift
+public struct ShellError: Swift.Error {
+ /// The termination status of the command that was run
+ public let terminationStatus: Int32
+ public var _code: Int { Int(terminationStatus) }
+ /// The error message as a UTF8 string, as returned through `STDERR`
+ public var message: String { self.errorData.shellOutput() }
+ /// The raw error buffer data, as returned through `STDERR`
+ public let errorData: Data
+ /// The raw input buffer data, as retuned through `STDIN`
+ public let inputData: Data
+ /// The raw output buffer data, as retuned through `STDOUT`
+ public let outputData: Data
+ /// The output of the command as a UTF8 string, as returned through `STDIN`
+ public var input: String { self.inputData.shellOutput() }
+ /// The output of the command as a UTF8 string, as returned through `STDOUT`
+ public var output: String { self.outputData.shellOutput() }
+}
+
+extension ShellError: LocalizedError {
+ public var errorDescription: String? { self.message.wrapped }
+ public var localizedDescription: String {
+  self.message.wrapped ?? _code.description
+ }
+}
+
+extension Data {
+ func shellOutput() -> String {
+  guard let output = String(data: self, encoding: .utf8) else {
+   return ""
+  }
+
+  guard !output.hasSuffix("\n") else {
+   let endIndex = output.index(before: output.endIndex)
+   return String(output[..<endIndex])
+  }
+
+  return output
+ }
 }
 
 /* TODO: implement verbosity
