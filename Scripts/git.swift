@@ -126,7 +126,7 @@ import Shell // ..
     exit(0)
    }
 
-   try process(.git, with: arguments)
+   try process(.git, arguments)
   }
   catch let error as _POSIXError { exit(error.status) }
   catch { fatalError() }

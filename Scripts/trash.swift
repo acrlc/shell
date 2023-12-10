@@ -20,7 +20,7 @@ import Shell // ..
 
   do {
    if self.force {
-    try process(.rm, with: ["-frd"] + self.inputs)
+    try process(.rm, ["-frd"] + self.inputs)
    } else {
     let urls = try inputs.compactMap {
      let url = URL(fileURLWithPath: $0)
