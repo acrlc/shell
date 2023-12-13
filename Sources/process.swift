@@ -244,7 +244,7 @@ public func output(
 
 @discardableResult
 public func output(
- _ command: CommandName, _ arguments: some Sequence<String> = [],
+ _ command: CommandName, with arguments: some Sequence<String>,
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
  errorHandle: FileHandle? = .nullDevice,
@@ -319,7 +319,7 @@ public func process(
 
 @inline(__always)
 public func process(
- _ command: CommandName, _ args: some Sequence<String>
+ _ command: CommandName, with args: some Sequence<String>
 ) throws {
  try process(command: command.rawValue, args)
 }
