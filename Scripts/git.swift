@@ -46,16 +46,17 @@ import Shell // ..
     // and read parent folders names such as 'github' or 'huggingface' to
     // so they can be used for the shorthand domain
     if !arguments.contains(where: { $0.matches(regex: \.url) }) {
-     let path = arguments[1]
+     let lastIndex = arguments.endIndex - 1
+     let path = arguments[lastIndex]
      // note: it's possible to assume the domain based on the previous path
      // replace with shorthand url
      // TODO: isolate paths which could be limited here
      if path.contains("/") {
-      arguments[1] = "https://github.com/\(path)"
+      arguments[lastIndex] = "https://github.com/\(path)"
      } else {
       // replace with folder based url
       let user = Folder.current.name
-      arguments[1] = "https://github.com/\(user)/\(path)"
+      arguments[lastIndex] = "https://github.com/\(user)/\(path)"
      }
     }
    } else if subcommand == "initialize" {
