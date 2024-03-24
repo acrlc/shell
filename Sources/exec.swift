@@ -8,7 +8,7 @@ import var Darwin.ERANGE
 import func Darwin.strerror_r
 #endif
 
-#if os(Linux) || os(macOS)
+#if os(Linux) || os(macOS) || os(iOS)
 import Foundation
 
 public func strerror(_ code: Int32) -> String {
