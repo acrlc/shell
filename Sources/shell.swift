@@ -1,4 +1,3 @@
-// A
 public enum Shell {
  /// - Note: This should be replaced if the expected parser has the help command
  public var help: String? {
@@ -65,6 +64,10 @@ public enum Shell {
   )
  }
  #endif
+ @inlinable
+ public static func onInterruption(_ trap: (@convention(c) (Int32) -> Void)!) {
+  signal(SIGINT, trap)
+ }
 }
 
 // MARK: - Error
