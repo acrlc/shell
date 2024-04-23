@@ -16,7 +16,7 @@ private extension FileHandle {
 
 #if os(macOS) || os(Linux)
 @discardableResult
-public func output(
+public func processOutput(
  command: String, _ args: some Sequence<String> = [],
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
@@ -33,8 +33,8 @@ public func output(
  let inputQueue = DispatchQueue(label: "shell-input-queue")
  let outputQueue = DispatchQueue(label: "shell-output-queue")
 
- var inputData = Data()
- var outputData = Data()
+ var dataIn = Data()
+ var dataOut = Data()
  var errorData = Data()
 
  let inputPipe = Pipe()
@@ -50,7 +50,7 @@ public func output(
  inputPipe.fileHandleForReading.readabilityHandler = { handler in
   let data = handler.availableData
   inputQueue.async {
-   inputData.append(data)
+   dataIn.append(data)
    inputHandle?.write(data)
   }
  }
@@ -59,7 +59,7 @@ public func output(
   outputPipe.fileHandleForReading.readabilityHandler = { handler in
    let data = handler.availableData
    outputQueue.async {
-    outputData.append(data)
+    dataOut.append(data)
     outputHandle?.write(data)
    }
   }
@@ -115,16 +115,16 @@ public func output(
    throw ShellError(
     terminationStatus: task.terminationStatus,
     errorData: errorData,
-    inputData: inputData,
-    outputData: outputData
+    inputData: dataIn,
+    outputData: dataOut
    )
   }
-  return outputData.shellOutput()
+  return dataOut.shellOutput()
  }
 }
 
 @discardableResult
-public func outputData(
+public func processData(
  command: String, _ args: some Sequence<String> = [],
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
@@ -137,8 +137,8 @@ public func outputData(
  let inputQueue = DispatchQueue(label: "shell-input-queue")
  let outputQueue = DispatchQueue(label: "shell-output-queue")
 
- var inputData = Data()
- var outputData = Data()
+ var dataIn = Data()
+ var dataOut = Data()
  var errorData = Data()
 
  let inputPipe = Pipe()
@@ -154,7 +154,7 @@ public func outputData(
  inputPipe.fileHandleForReading.readabilityHandler = { handler in
   let data = handler.availableData
   inputQueue.async {
-   inputData.append(data)
+   dataIn.append(data)
    inputHandle?.write(data)
   }
  }
@@ -163,7 +163,7 @@ public func outputData(
   outputPipe.fileHandleForReading.readabilityHandler = { handler in
    let data = handler.availableData
    outputQueue.async {
-    outputData.append(data)
+    dataOut.append(data)
     outputHandle?.write(data)
    }
   }
@@ -217,16 +217,16 @@ public func outputData(
    throw ShellError(
     terminationStatus: task.terminationStatus,
     errorData: errorData,
-    inputData: inputData,
-    outputData: outputData
+    inputData: dataIn,
+    outputData: dataOut
    )
   }
-  return outputData
+  return dataOut
  }
 }
 
 @discardableResult
-public func output(
+public func processOutput(
  _ command: CommandName, with arguments: String...,
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
@@ -234,7 +234,7 @@ public func output(
  process task: Process = Process(), pipe: Pipe = Pipe(),
  silent: Bool = false
 ) throws -> String {
- try output(
+ try processOutput(
   command: command.rawValue, arguments,
   inputHandle: inputHandle,
   outputHandle: outputHandle,
@@ -243,7 +243,7 @@ public func output(
 }
 
 @discardableResult
-public func output(
+public func processOutput(
  _ command: CommandName, with arguments: some Sequence<String>,
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
@@ -251,7 +251,7 @@ public func output(
  process task: Process = Process(), pipe: Pipe = Pipe(),
  silent: Bool = false
 ) throws -> String {
- try output(
+ try processOutput(
   command: command.rawValue, arguments,
   inputHandle: inputHandle,
   outputHandle: outputHandle,
@@ -260,7 +260,7 @@ public func output(
 }
 
 @discardableResult
-public func outputData(
+public func processData(
  _ command: CommandName, with arguments: String...,
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
@@ -268,7 +268,7 @@ public func outputData(
  process task: Process = Process(), pipe: Pipe = Pipe(),
  silent: Bool = false
 ) throws -> Data {
- try outputData(
+ try processData(
   command: command.rawValue, arguments,
   inputHandle: inputHandle,
   outputHandle: outputHandle,
@@ -277,7 +277,7 @@ public func outputData(
 }
 
 @discardableResult
-public func outputData(
+public func processData(
  _ command: CommandName, _ arguments: some Sequence<String>,
  inputHandle: FileHandle? = nil,
  outputHandle: FileHandle? = nil,
@@ -285,7 +285,7 @@ public func outputData(
  process task: Process = Process(), pipe: Pipe = Pipe(),
  silent: Bool = false
 ) throws -> Data {
- try outputData(
+ try processData(
   command: command.rawValue, arguments,
   inputHandle: inputHandle,
   outputHandle: outputHandle,
@@ -333,7 +333,7 @@ public func process(
 
 public extension Data {
  init(curl path: String) throws {
-  self = try outputData(.curl, with: "-s", path)
+  self = try processData(.curl, with: "-s", path)
  }
 }
 #endif

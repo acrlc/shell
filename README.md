@@ -7,11 +7,11 @@
 try process(.git, with: "clone", "https://")
 
 // read the output of a command
-let string = try output(.cat, with: "file.input")
+let string = try processOutput(.cat, with: "file.input")
 print("out:", string)
 
 // read the data output of a command
-let data = try outputData(.cat, with: "file.input")
+let data = try processData(.cat, with: "file.input")
 print("decoded:", String(data: data, encoding: .utf8) ?? "corrupt")
 ```
 `exit`
