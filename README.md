@@ -1,7 +1,7 @@
 
 #### Library designed to handle command line inputs and output
 #### Examples
-`process`, `output`, and `outputData`
+`process`, `processOutput`, and `processData`
 ```swift
 // run process, throwing an error if theres an error code
 try process(.git, with: "clone", "https://")

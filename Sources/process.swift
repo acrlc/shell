@@ -78,11 +78,11 @@ public func processOutput(
 
  #if os(Linux)
  inputQueue.sync {
-  inputData = inputPipe.fileHandleForReading.readDataToEndOfFile()
+  dataIn = inputPipe.fileHandleForReading.readDataToEndOfFile()
  }
  if !silent {
   outputQueue.sync {
-   outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+   dataOut = outputPipe.fileHandleForReading.readDataToEndOfFile()
    errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
   }
  }
@@ -182,11 +182,11 @@ public func processData(
 
  #if os(Linux)
  inputQueue.sync {
-  inputData = inputPipe.fileHandleForReading.readDataToEndOfFile()
+  dataIn = inputPipe.fileHandleForReading.readDataToEndOfFile()
  }
  if !silent {
   outputQueue.sync {
-   outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+   dataOut = outputPipe.fileHandleForReading.readDataToEndOfFile()
    errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
   }
  }
