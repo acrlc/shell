@@ -2,25 +2,30 @@
 import Shell // ..
 
 /// Sends files to the trash using Finder
-/// `trash <f, force> <[path]>`
+/// `trash <options> <paths>`
+///
+/// - Parameters:
+///   - options: A set of options to pass to `rm`, instead of the trash bin.
+///   - paths: The relative paths to remove or move to the trash bin
+///
 /// # Caveats
-/// - will not prompt when using the `force` flag
+/// - will not prompt when using some options (redirects to `rm` command)
 @main enum Trash {
- /// Optional flag to permanently delete files
- static var force: Bool = false
+ /// Options to pass to `rm` if necessary
+ static var options: [String] = .empty
  /// Files to trash or delete
  static var inputs = CommandLine.arguments[1...]
 
  static func main() {
   parse()
   guard self.inputs.notEmpty else {
-   print("input <\("path", style: .boldDim)> required")
+   print("input <\("paths", style: .boldDim)> required")
    exit(1)
   }
 
   do {
-   if self.force {
-    try process(.rm, with: ["-rf"] + self.inputs)
+   if let options = options.wrapped {
+    try process(.rm, with: options + self.inputs)
    } else {
     let urls = try inputs.compactMap {
      let url = URL(fileURLWithPath: $0)
@@ -77,12 +82,8 @@ import Shell // ..
 
 extension Trash {
  static func parse() {
-  if let first = inputs.first, first.hasPrefix("-") {
-   let option = first.drop(while: { $0 == "-" })
-   if option == "f" || option == "force" {
-    force = true
-    inputs.removeFirst()
-   }
+  while let first = inputs.first, first.hasPrefix("-") {
+   options.append(inputs.removeFirst())
   }
  }
 
