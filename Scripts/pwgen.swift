@@ -5,23 +5,25 @@ let args = CommandLine.arguments[1...]
 
 CommandLine.usage =
  """
+ 
  Prints out a random string of numbers and letters.
  \("usage", style: .bold): \
  pwgen <\("length", style: .boldDim)> <\("count", style: .boldDim)?>
+ 
  """
 
 guard args.notEmpty else {
- print("\n\(CommandLine.usage!)\n")
+ print(CommandLine.usage.unsafelyUnwrapped)
  exit(2, "at least one argument must be entered (length)")
 }
 
 guard args[1].drop(while: { $0 == "-" }) != "help" else {
- print("\n\(CommandLine.usage!)\n")
+ print(CommandLine.usage.unsafelyUnwrapped)
  exit(0)
 }
 
 guard let length = Int(args[1]), length > 0 else {
- print("\n\(CommandLine.usage!)\n")
+ print(CommandLine.usage.unsafelyUnwrapped)
  exit(1, "invalid argument for length, must be an unsigned integer > 0")
 }
 
