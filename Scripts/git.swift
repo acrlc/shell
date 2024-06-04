@@ -73,6 +73,16 @@ import Shell // ..
     arguments.removeFirst()
 
     var message: String?
+    var `continue`: Bool = false
+    
+    if let first = arguments.first, first.hasPrefix("-") {
+     let option = first.drop(while: { $0 == "-" })
+     if option == "y" || option == "yes" {
+      arguments.removeFirst()
+      `continue` = true
+     }
+    }
+
     if let first = arguments.first, first.hasPrefix("-") {
      let option = first.drop(while: { $0 == "-" })
      if option == "m" || option == "message" {
@@ -100,7 +110,7 @@ import Shell // ..
     try process(.git, with: "branch", "-M", branch)
     try process(.git, with: "remote", "add", "origin", remote)
 
-    request()
+    if !`continue` { request() }
     try process(.git, with: "push", "-u", "origin", branch)
 
     exit(0)
