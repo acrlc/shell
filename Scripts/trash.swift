@@ -10,22 +10,23 @@ import Shell // ..
 ///
 /// # Caveats
 /// - will not prompt when using some options (redirects to `rm` command)
-@main enum Trash {
- /// Options to pass to `rm` if necessary
+/// - will not prompt for password when emptying trash, which requires `sudo`
+@main
+enum Trash {
+ /// Options to pass to `rm` if necessary or `e`/`empty` to empty.
  static var options: [String] = .empty
  /// Files to trash or delete
  static var inputs = CommandLine.arguments[1...]
 
- static func main() {
-  parse()
-  guard self.inputs.notEmpty else {
-   print("input <\("paths", style: .boldDim)> required")
-   exit(1)
+ static func main() throws {
+  try parse()
+  guard inputs.notEmpty else {
+   exitNoInput()
   }
 
   do {
    if let options = options.wrapped {
-    try process(.rm, with: options + self.inputs)
+    try process(.rm, with: options + inputs)
    } else {
     let urls = try inputs.compactMap {
      let url = URL(fileURLWithPath: $0)
@@ -81,10 +82,37 @@ import Shell // ..
 }
 
 extension Trash {
- static func parse() {
-  while let first = inputs.first, first.hasPrefix("-") {
-   options.append(inputs.removeFirst())
+ static func parse() throws {
+  guard let first = inputs.first else {
+   exitNoInput()
   }
+
+  guard first.hasPrefix("-") else {
+   return
+  }
+
+  if ["e", "empty"].contains(first.drop(while: { $0 == "-" })) {
+   do {
+    let home = Folder.home
+    try home.subfolder(at: ".Trash").delete()
+    try home.createSubfolderIfNeeded(at: ".Trash")
+   } catch let error as PathError {
+    switch error.reason {
+    case .missing: break
+    default: exit(error)
+    }
+   }
+   exit(0)
+  } else {
+   while let first = inputs.first, first.hasPrefix("-") {
+    options.append(inputs.removeFirst())
+   }
+  }
+ }
+
+ static func exitNoInput() -> Never {
+  print("input <\("paths", style: .boldDim)> required")
+  return exit(1)
  }
 
  enum Error: LocalizedError, CustomStringConvertible {
