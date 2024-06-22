@@ -26,7 +26,7 @@ enum Trash {
 
   do {
    if let options = options.wrapped {
-    try process(.rm, with: options + inputs)
+    try execv(.rm, options + inputs)
    } else {
     let urls = try inputs.compactMap {
      let url = URL(fileURLWithPath: $0)
@@ -91,11 +91,25 @@ extension Trash {
    return
   }
 
-  if ["e", "empty"].contains(first.drop(while: { $0 == "-" })) {
+  let firstInput = first.drop(while: { $0 == "-" })
+  if ["e", "empty"].contains(firstInput) {
+   try execv(
+    "/usr/bin/osascript",
+    with:
+    "-e",
+    // "tell application \"Finder\" to empty trash"
+    """
+    tell application "Finder"
+    set warns before emptying of trash to true
+    empty trash
+    end tell
+    """
+   )
+  } else if ["E", "force-empty"].contains(firstInput) {
    do {
-    let home = Folder.home
-    try home.subfolder(at: ".Trash").delete()
-    try home.createSubfolderIfNeeded(at: ".Trash")
+    let path = try Folder.home.subfolder(at: ".Trash").path
+    try process("/usr/bin/sudo", with: "/bin/rm", "-fr", path)
+    try process("/usr/bin/sudo", with: "/bin/mkdir", path)
    } catch let error as PathError {
     switch error.reason {
     case .missing: break
@@ -116,10 +130,10 @@ extension Trash {
  }
 
  enum Error: LocalizedError, CustomStringConvertible {
-  case finderNotRunning, fileIsMissing(URL)
+  case finderNotRunning, fileIsMissing(URL), scriptError(String)
   var _code: Int {
    switch self {
-   case .finderNotRunning: 1
+   case .finderNotRunning, .scriptError: 1
    case .fileIsMissing: 2
    }
   }
@@ -128,6 +142,7 @@ extension Trash {
    switch self {
    case .finderNotRunning: "finder isn't running"
    case .fileIsMissing(let url): "path missing for '\(url.relativePath)' "
+   case .scriptError(let message): message
    }
   }
  }
