@@ -37,7 +37,7 @@ private final class CStringArray {
 
  /// Creates an instance from an array of strings.
  public init(_ array: [String]) {
-  self.cArray = array.map { $0.withCString { strdup($0) } } + [nil]
+  cArray = array.map { $0.withCString { strdup($0) } } + [nil]
  }
 
  deinit {
@@ -52,24 +52,26 @@ public enum _POSIXError: LocalizedError {
 
  public var status: Int32 {
   switch self {
-  case .execv(_, let code): return code
-  case .termination(let code): return code
+  case .execv(_, let code): code
+  case .termination(let code): code
   }
  }
 
- public var _code: Int { Int(self.status) }
+ public var _code: Int { Int(status) }
 
  public var errorDescription: String? {
   switch self {
   case .execv(let executablePath, let errno):
-   return "execv failed: \(strerror(errno)): \(executablePath)"
-  case .termination(let code): return "exit: \(code)"
+   "execv failed: \(strerror(errno)): \(executablePath)"
+  case .termination(let code): "exit: \(code)"
   }
  }
 }
 
 // from https://www.github.com/mxcl/swift-sh
-public func exec(_ command: String, with arguments: [String]) throws -> Never {
+public func execv(
+ _ command: String, _ arguments: some Sequence<String>
+) throws {
  let args = CStringArray([command] + arguments)
 
  guard execv(command, args.cArray) != -1 else {
@@ -79,5 +81,37 @@ public func exec(_ command: String, with arguments: [String]) throws -> Never {
  // note: impossible?
  fatalError()
 }
-#endif
 
+public func execv(_ command: String, with arguments: String...) throws {
+ let args = CStringArray([command] + arguments)
+
+ guard execv(command, args.cArray) != -1 else {
+  throw _POSIXError.execv(executable: command, errno: errno)
+ }
+}
+
+public func execv(_ name: CommandName, with arguments: String...) throws {
+ let command = "/usr/bin/env"
+ let subcommand = name.rawValue
+ let arguments = ["-S", subcommand] + arguments
+ 
+ let args = CStringArray(arguments)
+
+ guard execv(command, args.cArray) != -1 else {
+  throw _POSIXError.execv(executable: subcommand, errno: errno)
+ }
+}
+
+public func execv(
+ _ name: CommandName, _ arguments: some Sequence<String>
+) throws {
+ let command = "/usr/bin/env"
+ let subcommand = name.rawValue
+ let arguments = ["-S", subcommand] + arguments
+ let args = CStringArray(arguments)
+
+ guard execv(command, args.cArray) != -1 else {
+  throw _POSIXError.execv(executable: subcommand, errno: errno)
+ }
+}
+#endif
