@@ -19,8 +19,9 @@ import Shell // ..
   git clone repo
  subcommands: (will prompt by default if some or all inputs are missing)
  # initialize a repository with a remote url
- git initialize <option> <repository> <branch>
- option:
+ git initialize <options> <repository> <branch>
+ options:
+  -y, --yes: skips prompt to push to remote
   -m, --message <input>: initial commit message (default is 'initial')
  example: git initialize -m "starting" user/repo default
  # source a remote using a local repository and branch
