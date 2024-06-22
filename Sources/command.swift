@@ -55,6 +55,8 @@ public struct CommandName: RawRepresentable {
  public static let xcodebuild: Self = "xcodebuild"
  public static let xcodeselect: Self = "xcode-select"
  public static let xcrun: Self = "xcrun"
+ 
+ public static func command(_ name: String) -> Self { Self(rawValue: name) }
 }
 
 extension CommandName: ExpressibleByStringLiteral {
