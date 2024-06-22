@@ -1,6 +1,8 @@
 @_exported import Core
 @_exported import Extensions
-#if !arch(wasm32)
+#if !os(WASI)
+// There is no FileManager built into the Swift WASM runtime
+// https://github.com/WebAssembly/wasi-filesystem
 @_exported import Paths
 #endif
 @_exported import struct Components.Regex
