@@ -26,7 +26,7 @@ public func processOutput(
  process task: Process = Process(), pipe: Pipe = Pipe(),
  silent: Bool = false
 ) throws -> String {
- task.executableURL = URL(fileURLWithPath: task.shell)
+ task.executableURL = URL(fileURLWithPath: Process.shell)
  task.arguments = ["-c", command.appending(arguments: args)]
  // Because FileHandle's readabilityHandler might be called from a
  // different queue from the calling queue, avoid a data race by
@@ -134,7 +134,7 @@ public func processData(
  process task: Process = Process(), pipe: Pipe = Pipe(),
  silent: Bool = false
 ) throws -> Data {
- task.executableURL = URL(fileURLWithPath: task.shell)
+ task.executableURL = URL(fileURLWithPath: Process.shell)
  task.arguments = ["-c", command.appending(arguments: args)]
  let inputQueue = DispatchQueue(label: "shell-input-queue")
  let outputQueue = DispatchQueue(label: "shell-output-queue")
@@ -297,11 +297,11 @@ public func processData(
 
 public extension Process {
  @inline(__always)
- var shell: String { environment?["SHELL"] ?? "/bin/sh" }
+ static var shell: String { Shell.env["SHELL"] ?? "/bin/dash" }
  @inline(__always)
  convenience init(_ command: String, args: some Sequence<String>) {
   self.init()
-  self.executableURL = URL(fileURLWithPath: self.shell)
+  self.executableURL = URL(fileURLWithPath: Process.shell)
   self.arguments = ["-c", command.appending(arguments: args)]
  }
 }
@@ -400,7 +400,10 @@ private extension String {
    if let spaceIndex =
     reason.firstIndex(where: { $0 == .space }),
     reason[reason.startIndex ..< spaceIndex].lowercased().hasPrefix("error") {
-    echo(reason[spaceIndex ..< reason.endIndex], color: error ? .red : .yellow)
+    echo(
+     reason[spaceIndex ..< reason.endIndex].drop(while: { $0.isWhitespace }),
+     color: error ? .red : .yellow
+    )
    } else {
     echo(reason, color: error ? .red : .yellow)
    }

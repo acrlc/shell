@@ -22,6 +22,7 @@ import Shell // ..
  static let folder = Folder.current
  #if os(macOS)
  static var tag: String?
+ static var excludeTag: String?
  #endif
 
  static var arguments = CommandLine.arguments[1...].map { $0 }
@@ -47,7 +48,8 @@ import Shell // ..
 
   do {
    #if os(macOS)
-   if let tag {
+   switch (tag, excludeTag) {
+   case let (.some(tag), .none):
     for subfolder in folder.subfolders {
      guard let folderTags =
       try subfolder[.tagNames]?.map({ $0.lowercased() }),
@@ -55,11 +57,32 @@ import Shell // ..
 
      try perform(subfolder)
     }
-   } else {
-    for subfolder in folder.subfolders { try perform(subfolder) }
+   case let (.none, .some(excludeTag)):
+    for subfolder in folder.subfolders {
+     guard let folderTags =
+      try subfolder[.tagNames]?.map({ $0.lowercased() }),
+      !folderTags.contains(excludeTag.lowercased()) else { continue }
+
+     try perform(subfolder)
+    }
+   case let (.some(tag), .some(excludeTag)):
+    for subfolder in folder.subfolders {
+     guard let folderTags =
+      try subfolder[.tagNames]?.map({ $0.lowercased() }),
+      !folderTags.contains(excludeTag.lowercased()), folderTags.contains(tag.lowercased()) else { continue }
+
+     try perform(subfolder)
+    }
+   case (.none, .none):
+    for subfolder in folder.subfolders {
+     try perform(subfolder)
+    }
    }
+
    #else
-   for subfolder in folder.subfolders { try perform(subfolder) }
+   for subfolder in folder.subfolders {
+    try perform(subfolder)
+   }
    #endif
 
   } catch {
@@ -70,17 +93,24 @@ import Shell // ..
 
 extension Folders {
  static func parse() {
-  if let first = arguments.first, first.hasPrefix("-") {
+  while let first = arguments.first, first.hasPrefix("-") {
    let option = first.drop(while: { $0 == "-" })
-   if option == "t" || option == "tag" {
+   switch option {
+   case "t", "tag":
     arguments.removeFirst()
     guard let input = arguments.first?.wrapped else {
      exit(1, "option -t, --tag must include a tag name")
     }
     tag = input
     arguments.removeFirst()
-   } else {
-    exit(2, "unknown flag \(first) was used")
+   case "excludeTag":
+    arguments.removeFirst()
+    guard let input = arguments.first?.wrapped else {
+     exit(1, "option --excludeTag must include a tag name")
+    }
+    excludeTag = input
+    arguments.removeFirst()
+   default: break
    }
   }
  }

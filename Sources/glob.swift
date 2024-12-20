@@ -4,7 +4,13 @@ private let globFunction = Darwin.glob
 #elseif canImport(Glibc)
 import Glibc
 private let globFunction = Glibc.glob
+#elseif canImport(Musl)
+import Musl
+private let globFunction = Musl.glob
+#else
+#error("The shell glob module wasn't able to identify your C library")
 #endif
+
 
 #if os(macOS) || os(Linux) || os(Windows)
 import Foundation
@@ -20,10 +26,15 @@ public struct Glob {
    .reduce(into: [String]()) { paths, pattern in
     var globResult = glob_t()
     defer { globfree(&globResult) }
-
+    #if canImport(Darwin) || canImport(Glibc)
     if globFunction(pattern, GLOB_TILDE | GLOB_BRACE | GLOB_MARK, nil, &globResult) == 0 {
      paths.append(contentsOf: self.populateFiles(globResult: globResult))
     }
+    #elseif canImport(Musl)
+    if globFunction(pattern, GLOB_TILDE | 128 | GLOB_MARK, nil, &globResult) == 0 {
+     paths.append(contentsOf: self.populateFiles(globResult: globResult))
+    }
+    #endif
    }
    .unique()
    .sorted()

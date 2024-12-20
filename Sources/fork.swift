@@ -1,10 +1,15 @@
 #if !os(WASI) && !os(Windows)
-#if os(Linux)
-import Glibc
-private let sfork = Glibc.fork
-#else
+#if canImport(Darwin)
 import Darwin
 @_silgen_name("fork") private func sfork() -> Int32
+#elseif canImport(Glibc)
+import Glibc
+private let sfork = Glibc.fork
+#elseif canImport(Musl)
+import Musl
+private let sfork = Musl.fork
+#else
+#error("The shell fork module wasn't able to identify your C library")
 #endif
 
 /// Creates a daemon in a specified working directory and kick off a given
@@ -75,7 +80,7 @@ public func fork() {
 }
 
 @inline(__always) public func forkProcess(
- _ command: CommandName, _ args: String...
+ _ command: CommandName, with args: String...
 ) throws {
  try process(command: command.rawValue, args)
  fork()
@@ -83,7 +88,7 @@ public func fork() {
 
 @inline(__always)
 public func forkProcess(
- _ command: CommandName, with args: some Sequence<String>
+ _ command: CommandName, _ args: some Sequence<String>
 ) throws {
  try forkProcess(command: command.rawValue, args)
 }

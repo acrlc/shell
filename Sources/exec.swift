@@ -1,14 +1,20 @@
-#if os(Linux)
-import var Glibc.EINVAL
-import var Glibc.ERANGE
-import func Glibc.strerror_r
-#elseif os(macOS)
+#if os(macOS) || os(Linux) || os(FreeBSD) || os(Android)
+#if canImport(Darwin)
 import var Darwin.EINVAL
 import var Darwin.ERANGE
 import func Darwin.strerror_r
+#elseif canImport(Glibc)
+import var Glibc.EINVAL
+import var Glibc.ERANGE
+import func Glibc.strerror_r
+#elseif canImport(Musl)
+import var Musl.EINVAL
+import var Musl.ERANGE
+import func Musl.strerror_r
+#else
+#error("The shell exec module wasn't able to identify your C library")
 #endif
 
-#if os(Linux) || os(macOS) || os(iOS)
 import Foundation
 
 public func strerror(_ code: Int32) -> String {
@@ -31,7 +37,7 @@ public func strerror(_ code: Int32) -> String {
  return "fatal: strerror_r: ERANGE"
 }
 
-private final class CStringArray {
+private struct CStringArray: ~Copyable {
  /// The null-terminated array of C string pointers.
  public let cArray: [UnsafeMutablePointer<Int8>?]
 
@@ -52,8 +58,8 @@ public enum _POSIXError: LocalizedError {
 
  public var status: Int32 {
   switch self {
-  case .execv(_, let code): code
-  case .termination(let code): code
+  case let .execv(_, code): code
+  case let .termination(code): code
   }
  }
 
@@ -61,9 +67,9 @@ public enum _POSIXError: LocalizedError {
 
  public var errorDescription: String? {
   switch self {
-  case .execv(let executablePath, let errno):
+  case let .execv(executablePath, errno):
    "execv failed: \(strerror(errno)): \(executablePath)"
-  case .termination(let code): "exit: \(code)"
+  case let .termination(code): "exit: \(code)"
   }
  }
 }
@@ -94,7 +100,7 @@ public func execv(_ name: CommandName, with arguments: String...) throws {
  let command = "/usr/bin/env"
  let subcommand = name.rawValue
  let arguments = ["-S", subcommand] + arguments
- 
+
  let args = CStringArray(arguments)
 
  guard execv(command, args.cArray) != -1 else {
