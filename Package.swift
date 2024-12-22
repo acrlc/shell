@@ -10,6 +10,10 @@ let package = Package(
   .package(
    url: "https://github.com/acrlc/Chalk.git",
    branch: "add-default-color"
+  ),
+  .package(
+   url: "https://github.com/swift-server/swift-service-lifecycle.git",
+   from: "2.6.2"
   )
  ],
  targets: [
@@ -18,7 +22,8 @@ let package = Package(
     .product(name: "Core", package: "core"),
     .product(name: "Extensions", package: "core"),
     .product(name: "Components", package: "core"),
-    "Chalk"
+    "Chalk",
+    .product(name: "UnixSignals", package: "swift-service-lifecycle"),
    ],
    path: "Sources"
   )
