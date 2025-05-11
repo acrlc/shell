@@ -51,7 +51,17 @@ public enum Shell {
 #endif
  
  public static func write(_ str: String) {
-  str.withCString { _ = unistd.write(STDOUT_FILENO, $0, strlen($0)) }
+  str.withCString {
+   #if !canImport(unistd)
+   #if canImport(Glibc)
+   _ = Glibc.write(STDOUT_FILENO, $0, strlen($0))
+   #elseif canImport(Musl)
+   _ = Musl.write(STDOUT_FILENO, $0, strlen($0))
+   #endif
+   #else
+   _ = unistd.write(STDOUT_FILENO, $0, strlen($0))
+   #endif
+  }
  }
  
  @inlinable public static func appendInput(_ input: String) {
