@@ -390,7 +390,7 @@ private extension String {
 }
 #endif
 
-/// Exits the process with either `help` variable, error, or optional reason
+/// Exits the process with optional error or description.
 @inlinable public func exit(_ status: Int32 = 0, _ reason: Any) -> Never {
  if let reason = String(describing: reason).wrapped {
   if status == 0 {
