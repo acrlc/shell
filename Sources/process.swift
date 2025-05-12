@@ -48,7 +48,6 @@ public func processOutput(
  let errorPipe = Pipe()
  task.standardError = errorPipe
 
- #if !os(Linux)
  inputPipe.fileHandleForReading.readabilityHandler = { handler in
   let data = handler.availableData
   inputQueue.async {
@@ -74,22 +73,8 @@ public func processOutput(
    }
   }
  }
- #endif
 
  try task.run()
-
- #if os(Linux)
- inputQueue.sync {
-  dataIn = inputPipe.fileHandleForReading.readDataToEndOfFile()
- }
- if !silent {
-  outputQueue.sync {
-   dataOut = outputPipe.fileHandleForReading.readDataToEndOfFile()
-   errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-  }
- }
- #endif
-
  task.waitUntilExit()
 
  if let handle = inputHandle, !handle.isStandard {
@@ -105,10 +90,8 @@ public func processOutput(
    handle.closeFile()
   }
 
-  #if !os(Linux)
   outputPipe.fileHandleForReading.readabilityHandler = nil
   errorPipe.fileHandleForReading.readabilityHandler = nil
-  #endif
  }
  // Block until all writes have occurred to outputData and errorData,
  // and then read the data back out.
@@ -152,7 +135,6 @@ public func processData(
  let errorPipe = Pipe()
  task.standardError = errorPipe
 
- #if !os(Linux)
  inputPipe.fileHandleForReading.readabilityHandler = { handler in
   let data = handler.availableData
   inputQueue.async {
@@ -178,22 +160,8 @@ public func processData(
    }
   }
  }
- #endif
 
  try task.run()
-
- #if os(Linux)
- inputQueue.sync {
-  dataIn = inputPipe.fileHandleForReading.readDataToEndOfFile()
- }
- if !silent {
-  outputQueue.sync {
-   dataOut = outputPipe.fileHandleForReading.readDataToEndOfFile()
-   errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-  }
- }
- #endif
-
  task.waitUntilExit()
 
  if let handle = inputHandle, !handle.isStandard {
@@ -209,10 +177,8 @@ public func processData(
    handle.closeFile()
   }
 
-  #if !os(Linux)
   outputPipe.fileHandleForReading.readabilityHandler = nil
   errorPipe.fileHandleForReading.readabilityHandler = nil
-  #endif
  }
  return try outputQueue.sync {
   if task.terminationStatus != 0 {
