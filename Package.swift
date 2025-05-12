@@ -32,7 +32,7 @@ let package = Package(
 
 #if !arch(wasm32)
 package.dependencies.append(
- .package(url: "https://github.com/acrlc/paths.git", from: "0.1.0")
+ .package(url: "https://github.com/acrlc/paths.git", branch: "main")
 )
 for target in package.targets {
  if target.name == "Shell" {
