@@ -52,7 +52,7 @@ public enum Shell {
  
  public static func write(_ str: String) {
   str.withCString {
-   #if !canImport(unistd)
+   #if !canImport(Darwin)
    #if canImport(Glibc)
    _ = Glibc.write(STDOUT_FILENO, $0, strlen($0))
    #elseif canImport(Musl)
