@@ -287,6 +287,19 @@ public func process(
 
 @inline(__always)
 public func process(
+ command: String, _ args: some Sequence<String> = [], process: Process,
+) throws {
+ process.executableURL = URL(fileURLWithPath: Process.shell)
+ process.arguments = ["-c", command.appending(arguments: args)]
+ try process.run()
+ process.waitUntilExit()
+
+ let status = process.terminationStatus
+ if status != 0 { throw _POSIXError.termination(status) }
+}
+
+@inline(__always)
+public func process(
  _ command: CommandName, with args: some Sequence<String>
 ) throws {
  try process(command: command.rawValue, args)
@@ -294,9 +307,28 @@ public func process(
 
 @inline(__always)
 public func process(
+ _ command: CommandName,
+ with args: some Sequence<String>,
+ process linkedProcess: Process,
+) throws {
+ try process(command: command.rawValue, args, process: linkedProcess)
+}
+
+@inline(__always)
+public func process(
  _ command: CommandName, with args: String...
 ) throws {
  try process(command: command.rawValue, args)
+}
+
+@inline(__always)
+public func process(
+ _ command: CommandName,
+ with args: String...,
+ process linkedProcess: Process,
+
+) throws {
+ try process(command: command.rawValue, args, process: linkedProcess)
 }
 
 public extension Data {
