@@ -267,8 +267,8 @@ public extension Process {
  @inline(__always)
  convenience init(_ command: String, args: some Sequence<String>) {
   self.init()
-  self.executableURL = URL(fileURLWithPath: Process.shell)
-  self.arguments = ["-c", command.appending(arguments: args)]
+  executableURL = URL(fileURLWithPath: Process.shell)
+  arguments = ["-c", command.appending(arguments: args)]
  }
 }
 
@@ -287,7 +287,7 @@ public func process(
 
 @inline(__always)
 public func process(
- command: String, _ args: some Sequence<String> = [], process: Process,
+ command: String, _ args: some Sequence<String> = [], process: Process
 ) throws {
  process.executableURL = URL(fileURLWithPath: Process.shell)
  process.arguments = ["-c", command.appending(arguments: args)]
@@ -309,7 +309,7 @@ public func process(
 public func process(
  _ command: CommandName,
  with args: some Sequence<String>,
- process linkedProcess: Process,
+ process linkedProcess: Process
 ) throws {
  try process(command: command.rawValue, args, process: linkedProcess)
 }
@@ -325,8 +325,7 @@ public func process(
 public func process(
  _ command: CommandName,
  with args: String...,
- process linkedProcess: Process,
-
+ process linkedProcess: Process
 ) throws {
  try process(command: command.rawValue, args, process: linkedProcess)
 }
@@ -344,15 +343,15 @@ private extension String {
  }
 
  func appending(arguments: some Sequence<String>) -> String {
-  self.appending(argument: arguments.joined(separator: "\" \""))
+  appending(argument: arguments.joined(separator: "\" \""))
  }
 
  mutating func append(argument: String) {
-  self = self.appending(argument: argument)
+  self = appending(argument: argument)
  }
 
  mutating func append(arguments: some Sequence<String>) {
-  self = self.appending(arguments: arguments)
+  self = appending(arguments: arguments)
  }
 }
 
