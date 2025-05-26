@@ -50,6 +50,8 @@ public struct CommandName: RawRepresentable {
  public static let locate: Self = "locate"
  public static let less: Self = "less"
  public static let compgen: Self = "compgen"
+ public static let scp: Self = "scp"
+ public static let ssh: Self = "ssh"
  public static let touch: Self = "touch"
  public static let timer: Self = "timer"
  public static let xcodebuild: Self = "xcodebuild"
